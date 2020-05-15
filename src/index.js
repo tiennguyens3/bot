@@ -4,11 +4,12 @@ import ReactDOM from 'react-dom';
 import './style.css';
 
 import io from 'socket.io-client';
-const socket = io('http://localhost:7777');
 
 var urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.has('admin');
 const userName = urlParams.get('user') || 'user1';
+
+const socket = io('http://localhost:7777?userName=' + userName);
 
 const ChatBubble = (text, i, className) => {
   const classes = `${className} chat-bubble`;

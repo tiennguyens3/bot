@@ -2,7 +2,22 @@ html
   head
     title="Admin"
   body
-    ul
-    each val, index in list
-      li
-        a(href="http://localhost:7778?admin=1&user=" + index, target="_blank")=index
+    ul(id="users")
+      each val, index in list
+        li
+          a(href="http://localhost:7778?admin=1&user=" + index, target="_blank")=index
+    br
+    ul(id="list")
+
+
+script(src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js")
+script(src="https://code.jquery.com/jquery-3.4.1.min.js")
+script.
+  var socket = io('http://localhost:7777/admin');
+  socket.on('from-web', function(userName, message) {
+    $('#list').append("<li>" + userName + ' message:' + message + "</li>");
+  });
+
+  socket.on('user-web', function(userName) {
+    $('#users').append("<li><a href='http://localhost:7778?admin=1&user='" + userName +" target='_blank'>" + userName + "</a></li>");
+  });

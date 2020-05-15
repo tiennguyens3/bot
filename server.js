@@ -15,6 +15,7 @@ const client = new Wit({
 let talkToAdmin = false;
 let conversation = [];
 let session = {};
+let train = {};
 
 const responses = {
   greetings: [
@@ -133,6 +134,7 @@ const handleMessage = ({ entities }) => {
 
   // To limit effect of greetings.
   if (name === 'greetings' && intent.confidence < 0.9) {
+    train.question = true;
     return 'I do not understand your message. Do you want to talk to admin?';
   }
 
@@ -184,6 +186,7 @@ const handleMessage = ({ entities }) => {
     return response;
   }
 
+  train.question = true;
   return 'I do not understand your message. Do you want to talk to admin?';
 };
 
@@ -217,7 +220,20 @@ const io = socketIo(server);
 
 let socketIds = {};
 
+const nsp = io.of('/admin');
+
+let admins = [];
+
 io.on('connection', (socket) => {
+  // Add to admin
+  const { userName } = socket.handshake.query;
+  if (admins.indexOf(userName) < 0) {
+    admins.push(userName);
+    nsp.emit('user-web', userName);
+  }
+
+  console.log(admins);
+
   socket.on('chat message', (userName, message) => {
 
     if (socketIds[userName] === undefined) {
@@ -240,10 +256,16 @@ io.on('connection', (socket) => {
     client
     .message(message.text)
     .then(data => {
-      const message = handleMessage(data);
+      const msg = handleMessage(data);
+
+      // Update training
+      if (train.question) {
+        train.question = message.text;
+        nsp.emit('from-web', userName, message.text);
+      }
 
       const obj = {
-        text: message,
+        text: msg,
         user: 'ai'
       }
 
