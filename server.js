@@ -205,18 +205,41 @@ app.get('/conversation', (req, res) => {
   res.send(session[userName]);
 });
 
-app.post('/chat', (req, res) => {
-  const { message, userName } = req.body;
+app.get('/admin', (req, res) => {
+  res.render('admin', { list: session });
+});
 
-  const data = {
-    text: message,
-    user: 'user'
-  }
+const http = require("http");
+const server = http.createServer(app);
 
-  session[userName].push(data);
+const socketIo = require("socket.io");
+const io = socketIo(server);
 
-  client
-    .message(message)
+let socketIds = {};
+
+io.on('connection', (socket) => {
+  socket.on('chat message', (userName, message) => {
+
+    if (socketIds[userName] === undefined) {
+      //socketIds[userName] = socket.id;
+      //socket.join('room' + userName);
+    }
+
+    if ('ai' === message.user) {
+      //socket.join('room' + userName);
+      socket.join(socketIds[userName]);
+      socket.to(socketIds[userName]).emit('chat message', message);
+      return true;
+    }
+
+    if (session[userName] === undefined) {
+      session[userName] = [];
+    }
+
+    session[userName].push(message);
+
+    client
+    .message(message.text)
     .then(data => {
       const message = handleMessage(data);
 
@@ -227,39 +250,9 @@ app.post('/chat', (req, res) => {
 
       session[userName].push(obj);
 
-      res.send(message);
+      socket.emit('chat message', obj);
     })
     .catch(error => console.log(error));
-
-});
-
-app.get('/admin', (req, res) => {
-  res.render('admin', { list: session });
-});
-
-app.post('/new-session', (req, res) => {
-  console.log(req.body);
-  const { user } = req.body;
-
-  console.log(user);
-  session[user] = [];
-
-  console.log(session);
-});
-
-const http = require("http");
-const server = http.createServer(app);
-
-const socketIo = require("socket.io");
-const io = socketIo(server);
-
-io.on('connection', (socket) => {
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-  });
-
-  socket.on('chat message1', (msg) => {
-    io.emit('chat message1', msg);
   });
 });
 

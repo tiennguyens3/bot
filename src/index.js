@@ -54,38 +54,13 @@ class App extends React.Component {
 
     if (isAdmin) {
       msg.user = 'ai';
-      socket.emit('chat message', userName, msg);
-      return;
-    }
-
-    if (this.state.flag) {
-      socket.emit('chat message', msg);
-      return;
     }
 
     this.setState({
       conversation: [...this.state.conversation, msg],
     });
 
-    fetch('http://localhost:7777/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: this.state.userMessage,
-        userName: userName
-      }),
-    })
-    .then(response => response.text())
-    .then(data => {
-      const msg = {
-        text: data,
-        user: 'ai'
-      }
-
-      this.setState({
-        conversation: [...this.state.conversation, msg]
-      });
-    });
+    socket.emit('chat message', userName, msg);
   }
 
   componentDidMount() {
@@ -97,14 +72,6 @@ class App extends React.Component {
             conversation: data
           })
         });
-    } else {
-      fetch('http://localhost:7777/new-session', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          user: userName
-        })
-      })
     }
   }
 
