@@ -1,0 +1,8 @@
+html
+  head
+    title="Admin"
+  body
+    ul
+    each val, index in list
+      li
+        a(href="http://localhost:7778?admin=1&user=" + index, target="_blank")=index
