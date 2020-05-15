@@ -221,12 +221,11 @@ io.on('connection', (socket) => {
   socket.on('chat message', (userName, message) => {
 
     if (socketIds[userName] === undefined) {
-      //socketIds[userName] = socket.id;
-      //socket.join('room' + userName);
+      socketIds[userName] = socket.id;
+      socket.join(socketIds[userName]);
     }
 
     if ('ai' === message.user) {
-      //socket.join('room' + userName);
       socket.join(socketIds[userName]);
       socket.to(socketIds[userName]).emit('chat message', message);
       return true;
@@ -250,7 +249,7 @@ io.on('connection', (socket) => {
 
       session[userName].push(obj);
 
-      socket.emit('chat message', obj);
+      io.in(socketIds[userName]).emit('chat message', obj);
     })
     .catch(error => console.log(error));
   });
