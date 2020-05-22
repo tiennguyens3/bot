@@ -9,7 +9,7 @@ var urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.has('admin');
 const userName = urlParams.get('user') || 'user1';
 
-const socket = io('http://localhost:7777?userName=' + userName);
+const socket = io('http://localhost:7777/chat?userName=' + userName);
 
 const ChatBubble = (text, i, className) => {
   const classes = `${className} chat-bubble`;

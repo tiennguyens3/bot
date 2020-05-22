@@ -1,11 +1,13 @@
 html
   head
     title="Admin"
+    style
+      include admin.css
   body
     ul(id="users")
       each val, index in list
         li
-          a(href="http://localhost:7778?admin=1&user=" + index, target="_blank")=index
+          a(href="http://localhost:7778?admin=1&user=" + val, target="_blank")=val
     br
     ul(id="list")
 
@@ -18,6 +20,13 @@ script.
     $('#list').append("<li>" + userName + ' message:' + message + "</li>");
   });
 
-  socket.on('user-web', function(userName) {
-    $('#users').append("<li><a href='http://localhost:7778?admin=1&user='" + userName +" target='_blank'>" + userName + "</a></li>");
+  socket.on('user-web', function(list) {
+    $('#users').html('');
+    $.each(list, function(index, value) {
+      $('#users').append("<li><a href='http://localhost:7778?admin=1&user=" + value +"' target='_blank'>" + value + "</a></li>");
+    })
   });
+
+  socket.on('disconnect', function() {
+
+  })

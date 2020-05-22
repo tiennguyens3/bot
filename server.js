@@ -16,6 +16,8 @@ let talkToAdmin = false;
 let conversation = [];
 let session = {};
 let train = {};
+let users = {};
+let socketIds = {};
 
 const responses = {
   greetings: [
@@ -209,7 +211,7 @@ app.get('/conversation', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
-  res.render('admin', { list: session });
+  res.render('admin', { list: users });
 });
 
 const http = require("http");
@@ -218,21 +220,17 @@ const server = http.createServer(app);
 const socketIo = require("socket.io");
 const io = socketIo(server);
 
-let socketIds = {};
-
 const nsp = io.of('/admin');
 
-let admins = [];
-
-io.on('connection', (socket) => {
+const chat = io.of('/chat');
+chat.on('connection', (socket) => {
   // Add to admin
   const { userName } = socket.handshake.query;
-  if (admins.indexOf(userName) < 0) {
-    admins.push(userName);
-    nsp.emit('user-web', userName);
+  const values = Object.values(users);
+  if (userName && values.indexOf(userName) < 0) {
+    users[socket.id] = userName;
+    nsp.emit('user-web', Object.values(users));
   }
-
-  console.log(admins);
 
   socket.on('chat message', (userName, message) => {
 
@@ -247,10 +245,10 @@ io.on('connection', (socket) => {
       return true;
     }
 
+    // Save converstion
     if (session[userName] === undefined) {
       session[userName] = [];
     }
-
     session[userName].push(message);
 
     client
@@ -258,23 +256,31 @@ io.on('connection', (socket) => {
     .then(data => {
       const msg = handleMessage(data);
 
-      // Update training
-      if (train.question) {
-        train.question = message.text;
-        nsp.emit('from-web', userName, message.text);
-      }
-
+      // Save converstion
       const obj = {
         text: msg,
         user: 'ai'
       }
-
       session[userName].push(obj);
 
-      io.in(socketIds[userName]).emit('chat message', obj);
+      // Return message to sender
+      io.of('chat').in(socketIds[userName]).emit('chat message', obj);
+
+      // Update training
+      // Have no API for it now.
+      // Send to admin
+      if (train.question) {
+        train.question = message.text;
+        nsp.emit('from-web', userName, message.text);
+      }
     })
     .catch(error => console.log(error));
   });
+
+  socket.on('disconnect', () => {
+    delete users[socket.id]
+    nsp.emit('user-web', Object.values(users))
+  })
 });
 
 const port = process.env.PORT || 7777;
