@@ -1,3 +1,9 @@
+body {
+  margin: 0 auto;
+}
+
 ul {
   font-size: 30px;
+  list-style: none;
 }
+

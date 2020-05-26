@@ -4,11 +4,13 @@ html
     style
       include admin.css
   body
+    h2 Users
     ul(id="users")
       each val, index in list
         li
           a(href="http://localhost:7778?admin=1&user=" + val, target="_blank")=val
     br
+    h2 Messages
     ul(id="list")
 
 
@@ -17,7 +19,7 @@ script(src="https://code.jquery.com/jquery-3.4.1.min.js")
 script.
   var socket = io('http://localhost:7777/admin');
   socket.on('from-web', function(userName, message) {
-    $('#list').append("<li>" + userName + ' message:' + message + "</li>");
+    $('#list').append("<li>" + userName + ' messaged: ' + message + "</li>");
   });
 
   socket.on('user-web', function(list) {

@@ -134,6 +134,9 @@ const handleMessage = ({ entities }) => {
 
   const { name, value } = intent;
 
+  // Reset train
+  train.question = false;
+
   // To limit effect of greetings.
   if (name === 'greetings' && intent.confidence < 0.9) {
     train.question = true;
